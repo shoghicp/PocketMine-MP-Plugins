@@ -5,6 +5,7 @@ __PocketMine Plugin__
 name=TreeCapitator
 description=Break trees faster breaking the lowest trunk
 version=0.0.4
+apiversion=5
 author=shoghicp
 class=TreeCapitator
 */
@@ -29,18 +30,18 @@ class TreeCapitator implements Plugin{
        
         }
        
-        public function handle($data, $event)
+        public function handle(&$data, $event)
         {
                 switch($event)
                 {
                         case "player.block.break":
 
-                                $this->equip = $this->api->player->getByEID($data['eid'])->equipment[0];
+                                $this->equip = $this->api->player->get($data['player'])->equipment[0];
                                 $this->config = $this->readConfig($this->path);
                                 if($this->config["need-item"] === true)
                                 {
                                 	$this->id = explode(";", $this->config["ItemsID"]);
-                                	if(array_key_exists($this->equip, $this->id)) 
+                                	if(in_array($this->equip, $this->id)) 
                                 	{          
                                 			if($this->config["break-leaves"] === true)
                                 			{
@@ -106,14 +107,19 @@ class TreeCapitator implements Plugin{
                                                                 "y" => $y,
                                                                 "z" => $z,
                                                                 "eid" => $data["eid"],
-                                                                 ));     
+                                                                 ));
+                                                            $num = rand(0, 10);
+                                                            if($num === 7 || $num === 4)
+                                                            {
+                                                                $this->api->block->drop(new Vector3($x, $y, $z), new Item(6));
+                                                            }     
                                                         }	
                                                 }                        
                                         }
                                	}
-                                                
-                                $this->api->block->drop($block[2][0], $block[2][1], $block[2][2], $block[0], $block[1], $y - $block[2][1] + 1);
-                                $this->api->trigger("server.chat", $this->api->player->getByEID($data["eid"])->username." used TreeCapitator");
+                                
+                                $this->api->block->drop(new Vector3($block[2][0], $block[2][1], $block[2][2]), new Item($block[0], $block[1]);
+                                $this->api->trigger("server.chat", $data['player']." used TreeCapitator");
                                 return false;
                        	}
                 }
@@ -141,8 +147,8 @@ class TreeCapitator implements Plugin{
                                                 "eid" => $data["eid"],
                                                 ));    
                                 }
-                                $this->api->block->drop($block[2][0], $block[2][1], $block[2][2], $block[0], $block[1], $y - $block[2][1] + 1);
-                                $this->api->trigger("server.chat", $this->api->player->getByEID($data["eid"])->username." used TreeCapitator");
+                                $this->api->block->drop(new Vector3($block[2][0], $block[2][1], $block[2][2]), new Item($block[0], $block[1]);
+                                $this->api->trigger("server.chat", $data['player']." used TreeCapitator");
                                 return false;
                         }
                
