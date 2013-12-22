@@ -1,7 +1,7 @@
 ### Commands
 
 | Commands 				| Alias 			| Description |
-|:----------------------|:-----------------:|------------:|
+|-----------------------|:-----------------:|------------:|
 | `izone create <radius>` | `izc <radius>`  | The main coordinates will be the player who executed the command. We will do a radius with the given number in the command |
 | `izone create <player>` | `izc <player>`  | The main coordinates will be the player who executed the command and the final coordinates will be the player specified in the command. The onwer of the private area which will execute the command |
 | `izone create <player1> <player2>` | `izc <player1> <player2>` | The private area is created between the two player specified in the command. The first specified player will own the private area |
