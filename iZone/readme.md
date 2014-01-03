@@ -9,4 +9,14 @@
 |  izone create [player] [x] [y] [z]                   | izc [player] [x] [y] [z]  | **A private area is created between the player and the specified coordinates. The owner will be specified in the command.**|
 |  izone create [x1] [y1] [z1] [x2] [y2] [z2]          | izc [x1] [y1] [z1] [x2] [y2] [z2] | **A private area will be created between the coordinates specified in the command. The owner of the private zone who will run the command.**|
 |  izone create [player] [x1] [y1] [z1] [x2] [y2] [z2] | izc [player] [x1] [y1] [z1] [x2] [y2] [z2]   | **A private area will be created between the coordinates specified in the command. The owner will be specified in the command.**|
+| izone delete [owner]	| izd [owner] | **This command delete a private area of the onwer specified in the command.**|
+| izone delete [x] [y] [z] | izd [x] [y] [z] | **This command delete the private area with the coordinate specified in the  command** |
+| izone delete [x1] [y1] [z1] [x2] [y2] [z2] | izd [x1] [y1] [z1] [x2] [y2] [z2] | **This command delete the private area with the coordinate specified in the  command** |
+| izone addg [player] | izag [player] | **This command will add the player to your private area specified as guest** |
+| izone addg [player] [rank] | izag [player] [rank] | **This command adds the specified player to the private area. The player will have the rank specified in the command** |
+| izone addg [player] [rank] [time] | izag [player] [rank] [time] | **This command adds the specified player to the private area. The player will have the rank specified in the command by the time specified in the command (Seconds)** |
+| izone permg [player] [rank] | izpg [player] [rank] | **This command modifies the rank of player. In your private area** |
+| izone permg [player] [rank] [time] or izpg [player] [rank] [time] | **This command modifies the rank of player for the indicated time. In your private area.** |
+| izone deleteg [player] | izdg [player] | **This will remove the player from the guest list of your private area** |
+| izone help | izh | **This command will show all of this command in-game** |
 
