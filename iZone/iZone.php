@@ -4,13 +4,13 @@
 __PocketMine Plugin__
 name=iZone
 description=Protect multiple zone with this plugins
-version=1.3
+version=1.4
 apiversion=10,11
 author=InusualZ
 class=iZone
 */
  
-define("IZONE_VERSION", 1.3);
+define("IZONE_VERSION", 1.4);
 
 class iZone implements Plugin{
     private $api, $config, $areas;
@@ -37,7 +37,7 @@ class iZone implements Plugin{
         $this->api->console->alias("izpg",  "izone permg");
         $this->api->console->alias("izh",   "izone help");
 
-        //$this->api->schedule(10, array($this, "saveAll"), array(), true); // Auto Save Private Area 1/2 Second
+        $this->api->schedule(10, array($this, "saveAll"), array(), true); // Auto Save Private Area 1/2 Second
     	
         $this->configInit();
     }
@@ -49,20 +49,21 @@ class iZone implements Plugin{
             if(count($params) < 1)
             {
                 console("Usage: /{$cmd} <command> [parameters...]");
-                console("Usage: /izone create <int/Player> or /izc <int/Player>");
-                console("Usage: /izone create <player1> <player2> or /izc <player1> <player2>");
-                console("Usage: /izone create <x> <y> <z> or /izc <x> <y> <z>");
-                console("Usage: /izone create <player> <x> <y> <z> or /izc <player> <x> <y> <z>");
-                console("Usage: /izone create <x1> <y1> <z1> <x2> <y2> <z2> or /izc <x1> <y1> <z1> <x2> <y2> <z2>");
-                console("Usage: /izone delete <owner> or /izd <owner>");
-                console("Usage: /izone delete <x> <y> <z> or /izd <x> <y> <z>");
-                console("Usage: /izone delete <x1> <y1> <z1> <x2> <y2> <z2> or /izd <x1> <y1> <z1> <x2> <y2> <z2>");
-                console("Usage: /izone addg <player> or /izag <player>");
-                console("Usage: /izone addg <player> <rank> or /izag <player> <rank>");
-                console("Usage: /izone addg <player> <rank> <time> or /izag <player> <rank> <time>");
-                console("Usage: /izone deleteg <player> or /izdg <player>");
-                console("Usage: /izone permg <player> <rank> or /izpg <player> <rank>");
-                console("Usage: /izone permg <player> <rank> <time> or /izpg <player> <rank> <time>");
+                console("Usage: /izone create [int] or /izc [int]");
+                console("Usage: /izone create [player] or /izc [player]");
+                console("Usage: /izone create [player1] [player2] or /izc [player1] [player2]");
+                console("Usage: /izone create [x] [y] [z] or /izc [x] [y] [z]");
+                console("Usage: /izone create [player] [x] [y] [z] or /izc [player] [x] [y] [z]");
+                console("Usage: /izone create [x1] [y1] [z1] [x2] [y2] [z2] or /izc [x1] [y1] [z1] [x2] [y2] [z2]");
+                console("Usage: /izone delete [owner] or /izd [owner]");
+                console("Usage: /izone delete [x] [y] [z] or /izd [x] [y] [z]");
+                console("Usage: /izone delete [x1] [y1] [z1] [x2] [y2] [z2] or /izd [x1] [y1] [z1] [x2] [y2] [z2]");
+                console("Usage: /izone addg [player] or /izag [player]");
+                console("Usage: /izone addg [player] [rank] or /izag [player] [rank]");
+                console("Usage: /izone addg [player] [rank] [time] or /izag [player] [rank] [time]");
+                console("Usage: /izone deleteg [player] or /izdg [player]");
+                console("Usage: /izone permg [player] [rank] or /izpg [player] [rank]");
+                console("Usage: /izone permg [player] [rank] [time] or /izpg [player] [rank] [time]");
                 return;
             }
 
@@ -70,7 +71,7 @@ class iZone implements Plugin{
             {
                 case 'create':
                     $ps = count($params);
-                    if($issuer instanceof Player && $this->api->ban->isOp($issuer->username))
+                    if($issuer instanceof Player && ($this->config->get("non-op-create") == true || $this->api->ban->isOp($issuer->username)))
                     {
                         if( $ps  == 1)
                         {
@@ -97,7 +98,8 @@ class iZone implements Plugin{
                             }
                             else
                             {
-                                console("Usage: /{$cmd} create <int:player>");
+                                console("Usage: /{$cmd} create [int]");
+                                console("Usage: /{$cmd} create [player]");
                             }
 
                         }
@@ -148,7 +150,7 @@ class iZone implements Plugin{
                             }
                             else
                             {
-                                console("[iZone] Usage: /{$cmd} create <x> <y> <z>");
+                                console("[iZone] Usage: /{$cmd} create [x] [y] [z]");
                             }
 
                         }
@@ -171,12 +173,12 @@ class iZone implements Plugin{
                                 }
                                 else
                                 {
-                                    console("[iZone] Usage: /{$cmd} create <player> <x> <y> <z>");
+                                    console("[iZone] Usage: /{$cmd} create [player] [x] [y] [z]");
                                 }
                             }
                             else
                             {
-                                console("[iZone] Usage: /{$cmd} create <player> <x> <y> <z>");
+                                console("[iZone] Usage: /{$cmd} create [player] [x] [y] [z]");
                             }
 
                         }
@@ -200,7 +202,7 @@ class iZone implements Plugin{
                             }
                             else
                             {
-                                console("[iZone] Usage: /{$cmd} create <x1> <y1> <z1> <x2> <y2> <z2>");
+                                console("[iZone] Usage: /{$cmd} create [x1] [y1] [z1] [x2] [y2] [z2]");
                             }
                         }
                         elseif($ps == 7)
@@ -226,12 +228,12 @@ class iZone implements Plugin{
                                 }
                                 else
                                 {
-                                    console("[iZone] Usage: /{$cmd} create <owner> <x1> <y1> <z1> <x2> <y2> <z2>");
+                                    console("[iZone] Usage: /{$cmd} create [owner] [x1] [y1] [z1] [x2] [y2] [z2]");
                                 }
                             }
                             else
                             {
-                                console("[iZone] Usage: /{$cmd} create <owner> <x1> <y1> <z1> <x2> <y2> <z2>");
+                                console("[iZone] Usage: /{$cmd} create [owner] [x1] [y1] [z1] [x2] [y2] [z2]");
                             }
                         }
                         else
@@ -254,7 +256,7 @@ class iZone implements Plugin{
                     $ps = count($params);
                     if($issuer instanceof Player)
                     {
-                        if($this->api->ban->isOp($issuer->username))
+                        if($this->api->ban->isOp($issuer->username) || $this->config->get("non-op-create") == true)
                         {
                             if($ps == 1)
                             {
@@ -379,7 +381,7 @@ class iZone implements Plugin{
                             }
                             else
                             {
-                                console("[iZone] Usage: /{$cmd} delete <x1> <y1> <z1>");
+                                console("[iZone] Usage: /{$cmd} delete [x] [y] [z]");
                             }
                         }
                         elseif($ps == 6)
@@ -407,7 +409,7 @@ class iZone implements Plugin{
                             }
                             else
                             {
-                                console("[iZone] Usage: /{$cmd} delete <x1> <y1> <z1> <x2> <y2> <z2>");
+                                console("[iZone] Usage: /{$cmd} delete [x1] [y1] [z1] [x2] [y2] [z2]");
                             }
                         }
                     }
@@ -538,20 +540,21 @@ class iZone implements Plugin{
 
                 case 'help':
                     console("Usage: /{$cmd} <command> [parameters...]");
-                    console("Usage: /izone create <int/Player> or /izc <int/Player>");
-                    console("Usage: /izone create <player1> <player2> or /izc <player1> <player2>");
-                    console("Usage: /izone create <x> <y> <z> or /izc <x> <y> <z>");
-                    console("Usage: /izone create <player> <x> <y> <z> or /izc <player> <x> <y> <z>");
-                    console("Usage: /izone create <x1> <y1> <z1> <x2> <y2> <z2> or /izc <x1> <y1> <z1> <x2> <y2> <z2>");
-                    console("Usage: /izone delete <owner> or /izd <owner>");
-                    console("Usage: /izone delete <x> <y> <z> or /izd <x> <y> <z>");
-                    console("Usage: /izone delete <x1> <y1> <z1> <x2> <y2> <z2> or /izd <x1> <y1> <z1> <x2> <y2> <z2>");
-                    console("Usage: /izone addg <player> or /izag <player>");
-                    console("Usage: /izone addg <player> <rank> or /izag <player> <rank>");
-                    console("Usage: /izone addg <player> <rank> <time> or /izag <player> <rank> <time>");
-                    console("Usage: /izone deleteg <player> or /izdg <player>");
-                    console("Usage: /izone permg <player> <rank> or /izpg <player> <rank>");
-                    console("Usage: /izone permg <player> <rank> <time> or /izpg <player> <rank> <time>");
+                    console("Usage: /izone create [int] or /izc [int]");
+                    console("Usage: /izone create [player] or /izc [player]");
+                    console("Usage: /izone create [player1] [player2] or /izc [player1] [player2]");
+                    console("Usage: /izone create [x] [y] [z] or /izc [x] [y] [z]");
+                    console("Usage: /izone create [player] [x] [y] [z] or /izc [player] [x] [y] [z]");
+                    console("Usage: /izone create [x1] [y1] [z1] [x2] [y2] [z2] or /izc [x1] [y1] [z1] [x2] [y2] [z2]");
+                    console("Usage: /izone delete [owner] or /izd [owner]");
+                    console("Usage: /izone delete [x] [y] [z] or /izd [x] [y] [z]");
+                    console("Usage: /izone delete [x1] [y1] [z1] [x2] [y2] [z2] or /izd [x1] [y1] [z1] [x2] [y2] [z2]");
+                    console("Usage: /izone addg [player] or /izag [player]");
+                    console("Usage: /izone addg [player] [rank] or /izag [player] [rank]");
+                    console("Usage: /izone addg [player] [rank] [time] or /izag [player] [rank] [time]");
+                    console("Usage: /izone deleteg [player] or /izdg [player]");
+                    console("Usage: /izone permg [player] [rank] or /izpg [player] [rank]");
+                    console("Usage: /izone permg [player] [rank] [time] or /izpg [player] [rank] [time]");
                     break;
 
             }
@@ -587,7 +590,7 @@ class iZone implements Plugin{
                         {
                             if($area->getPerm($data['player']->username) <= SEE_PERM)
                             {
-                                $data['player']->sendChat($this->config->get('private-area-msg'));
+                                $data['player']->eventHandler($this->config->get('private-area-msg'), "server.chat");
                                 return false;
                             }
                         }
@@ -643,6 +646,7 @@ class iZone implements Plugin{
                 "private-area-creation-msg"     => "[iZone] The private area has been created.",
                 "private-area-removed-msg"      => "[iZone] The private area has been removed.",
                 //"walk-on-private-area"          => false,
+                "non-op-create"                 => false,
                 "explosion-protection"          => true,
                 "explosion-radius-protection"   => 8,
                 "default-area-size"             => 10,
@@ -653,53 +657,46 @@ class iZone implements Plugin{
         {
             unlink($this->api->plugin->configPath($this) . "config.yml");
             $this->config = new Config($this->api->plugin->configPath($this) . "config.yml", CONFIG_YAML, array(
-                "plugin-version"                => IZONE_VERSION,
-                "private-area-msg"              => "[iZone] This is a private area.",
-                "explosion-protection-msg"      => "[iZone] Someone is trying to blow up your private area.",
-                "private-area-creation-msg"     => "[iZone] The private area has been created.",
-                "private-area-removed-msg"      => "[iZone] The private area has been removed.",
-                //"walk-on-private-area"          => false,
-                "explosion-protection"          => true,
-                "explosion-radius-protection"   => 8,
-                "default-area-size"             => 10,
-                "private-areas"                 => array(),
+                    "plugin-version"                => IZONE_VERSION,
+                    "private-area-msg"              => "[iZone] This is a private area.",
+                    "explosion-protection-msg"      => "[iZone] Someone is trying to blow up your private area.",
+                    "private-area-creation-msg"     => "[iZone] The private area has been created.",
+                    "private-area-removed-msg"      => "[iZone] The private area has been removed.",
+                    //"walk-on-private-area"          => false,
+                    "non-op-create"                 => false,
+                    "explosion-protection"          => true,
+                    "explosion-radius-protection"   => 8,
+                    "default-area-size"             => 10,
+                    "private-areas"                 => array(),
             ));
         }
-      //  $list = $this->config->get("private-areas");
-      //  if(is_array($list))
-      //  {
-      //      foreach($list as $area)
-      //      {
-      //          $area  = PArea::fromString($this->api, $area, $this);
-      //          $this->areas[$area->owner] = $area;
-      //     }
-      //  }
+        $list = $this->config->get("private-areas");
+        if(is_array($list))
+        {
+            foreach($list as $area)
+            {
+                $area  = PArea::fromString($this->api, $area);
+                $this->areas[$area->owner] = $area;
+           }
+        }
     }
 
     public function saveAll()
     {
+        if(count($this->areas) == 0)
+            return;
+
         $list = array();
         foreach($this->areas as $area)
         {
-            $list[] = $area->toString();
+            $list[] = serialize($area->toString());
         }
         $this->config->set('private-areas', $list);
         $this->config->save();
     }
 
     public function __destruct(){
-       // $list = array();
-       // foreach($this->areas as $area)
-       // {
-      //      $list[] = $area->toString();
-      //  }
-       // $this->config->set('private-areas', $list);
-       // $this->config->save();
-    }
-
-    public function newPArea($api, $level,  $pos1, $pos2, $users)
-    {
-        return new PArea($api, $level, $pos1, $pos2, $users);
+       return $this->saveAll();
     }
 }
 
@@ -770,6 +767,8 @@ class PArea
             else
                 $this->level = $this->api->level->getDefault();
         }
+        else
+            $this->level = $level;
     }
 
     public function isIn($x, $y, $z)
@@ -1067,29 +1066,19 @@ class PArea
         }
     }
 
-    public static function fromString($api, $string, $plugin)
+    public static function fromString($api, $string)
     {
-        $a = explode('(', $string)[1];
-        $a = explode(',', $a);
-
-        $pos1 = array(array_shift($a), array_shift($a), array_shift($a));
-        $pos2 = array(array_shift($a), array_shift($a), array_shift($a));
-        return $plugin->newPArea($api, $pos1, $pos2, $a);
+        $area = unserialize($string);
+        $area->api = $api;
+        return $area;
     }
 
     public function toString()
     {
-        $object =  "PArea(" . "{$this->owner}," . "{$this->x1}," . "{$this->y1}," . "{$this->z1}," .
-        "{$this->x2}," . "{$this->y2}," . "{$this->z2}";
-
-        foreach($this->users as $k => $u)
-        {
-            $object .= ",";
-            $object .= $u;
-        }
-        $object .= ')';
-
-        return $object;
+        $c = $this;
+        $c->level = $c->level instanceof Level ? $c->level->getName() : "world";
+        $c->api = "blah";
+        return $c;
     }
 
 }
