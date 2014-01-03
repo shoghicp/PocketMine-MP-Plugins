@@ -16,7 +16,7 @@
 | izone addg [player] [rank] | izag [player] [rank] | **This command adds the specified player to the private area. The player will have the rank specified in the command** |
 | izone addg [player] [rank] [time] | izag [player] [rank] [time] | **This command adds the specified player to the private area. The player will have the rank specified in the command by the time specified in the command (Seconds)** |
 | izone permg [player] [rank] | izpg [player] [rank] | **This command modifies the rank of player. In your private area** |
-| izone permg [player] [rank] [time] or izpg [player] [rank] [time] | **This command modifies the rank of player for the indicated time. In your private area.** |
+| izone permg [player] [rank] [time] | izpg [player] [rank] [time] | **This command modifies the rank of player for the indicated time. In your private area.** |
 | izone deleteg [player] | izdg [player] | **This will remove the player from the guest list of your private area** |
 | izone help | izh | **This command will show all of this command in-game** |
 
