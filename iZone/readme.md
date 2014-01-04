@@ -11,6 +11,7 @@
 | explosion-radius-protection | integer | __8__ | This will be the radius of the explosion protection. |
 | default-area-size | integer | __10__ | This will be the default size for a private area.. |
 
+---
 
 ### Commands
 
