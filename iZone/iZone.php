@@ -4,13 +4,13 @@
 __PocketMine Plugin__
 name=iZone
 description=Protect multiple zone with this plugins
-version=1.4
+version=1.6
 apiversion=10,11
 author=InusualZ
 class=iZone
 */
  
-define("IZONE_VERSION", 1.4);
+define("IZONE_VERSION", 1.6);
 
 class iZone implements Plugin{
     private $api, $config, $areas;
@@ -24,7 +24,7 @@ class iZone implements Plugin{
     {
     	$this->api->addHandler("player.block.place", array($this, 'handler'), 15);
         $this->api->addHandler("player.block.break", array($this, 'handler'), 15);
-        $this->api->addHandler("player.block.activate", array($this, 'handler'), 15);
+        $this->api->addHandler("player.block.touch", array($this, 'handler'), 15);
         $this->api->addHandler("entity.explosion", array($this, 'handler'), 15);
 
     	$this->api->console->register("izone", "[iZone] Protect multiple zone", array($this, 'commands'));
@@ -35,6 +35,7 @@ class iZone implements Plugin{
         $this->api->console->alias("izag",  "izone addg");
         $this->api->console->alias("izdg",  "izone deleteg");
         $this->api->console->alias("izpg",  "izone permg");
+        $this->api->console->alias("izco",  "izone coord");
         $this->api->console->alias("izh",   "izone help");
 
         $this->api->schedule(10, array($this, "saveAll"), array(), true); // Auto Save Private Area 1/2 Second
@@ -64,29 +65,46 @@ class iZone implements Plugin{
                 console("Usage: /izone deleteg [player] or /izdg [player]");
                 console("Usage: /izone permg [player] [rank] or /izpg [player] [rank]");
                 console("Usage: /izone permg [player] [rank] [time] or /izpg [player] [rank] [time]");
+                console("Usage: /izone coord or /izco ");
                 return;
             }
 
             switch(array_shift($params))
             {
                 case 'create':
-                    $ps = count($params);
+                    $data = array(count($params));
+
                     if($issuer instanceof Player && ($this->config->get("non-op-create") == true || $this->api->ban->isOp($issuer->username)))
                     {
-                        if( $ps  == 1)
+                        for($i = 0; $i < $data[0]; $i++)
                         {
-                            $i = array_shift($params);
-                            if(is_numeric($i) && intval($i) > 0){
-                                $i = intval($i);
+                            $data[] = array_shift($params);
+                        }
+
+                        if($data[0] < 1)
+                        {
+                            $i = intval($this->config->get('default-area-size'));
+                            $pos1 =  array($issuer->entity->x - $i, $issuer->entity->y - $i, $issuer->entity->z - $i);
+                            $pos2 =  array($issuer->entity->x + $i, $issuer->entity->y + $i, $issuer->entity->z + $i);
+
+                            $this->areas[$issuer->username] = new PArea($this->api, $issuer->level, $pos1, $pos2, $issuer->username);
+                            $issuer->sendChat($this->config->get('private-area-creation-msg'));
+                        }
+                        elseif($data[0] == 1)
+                        {
+                            if(is_numeric($data[1]) && intval($data[1]) > 0)
+                            {
+
+                                $i = intval($data[1]);
                                 $pos1 =  array($issuer->entity->x - $i, $issuer->entity->y - $i, $issuer->entity->z - $i);
                                 $pos2 =  array($issuer->entity->x + $i, $issuer->entity->y + $i, $issuer->entity->z + $i);
 
                                 $this->areas[$issuer->username] = new PArea($this->api, $issuer->level, $pos1, $pos2, $issuer->username);
                                 $issuer->sendChat($this->config->get('private-area-creation-msg'));
                             }
-                            elseif(is_string($i) && !empty($i))
+                            elseif(is_string($data[1]) && !empty($data[1]))
                             {
-                                $i = $this->api->player->get($i);
+                                $i = $this->api->player->get($data[1]);
                                 if( $i instanceof Player)
                                 {
                                     $pos1 =  array($issuer->entity->x, $issuer->entity->y, $issuer->entity->z);
@@ -98,20 +116,15 @@ class iZone implements Plugin{
                             }
                             else
                             {
-                                console("Usage: /{$cmd} create [int]");
-                                console("Usage: /{$cmd} create [player]");
+                                $issuer->sendChat("Usage: /{$cmd} create [int]");
+                                $issuer->sendChat("Usage: /{$cmd} create [player]");
                             }
-
                         }
-                        elseif($ps == 2)
+                        elseif($data[0] == 2)
                         {
-                            $c = array_shift($params);
-                            if(strtolower($c) == 'me' || strtolower($c) == 'i')
-                                $u1 = $issuer;
-                            else
-                                $u1 = $this->api->player->get($c);
+                            $u1 = $this->api->player->get($$data[1]);
 
-                            $i = array_shift($params);
+                            $i = array_shift($data[2]);
                             if(is_numeric($i) && intval($i) > 0)
                             {
                                 $i = intval($i);
@@ -120,6 +133,7 @@ class iZone implements Plugin{
 
                                 $this->areas[$u1->username] = new PArea($this->api, $issuer->level, $pos1, $pos2, $u1->username);
                                 $u1->sendChat($this->config->get('private-area-creation-msg'));
+                                return;
                             }
                             else
                             {
@@ -132,13 +146,17 @@ class iZone implements Plugin{
                                     $this->areas[$u1->username] = new PArea($this->api, $issuer->level, $pos1, $pos2, $u1->username);
                                     $u1->sendChat($this->config->get('private-area-creation-msg'));
                                 }
+                                return;
                             }
+
+                            $issuer->sendChat("Usage: /{$cmd} create [player] [radius]");
+
                         }
-                        elseif($ps == 3)
+                        elseif($data[0] == 3)
                         {
-                            $x = intval(array_shift($params));
-                            $y = intval(array_shift($params));
-                            $z = intval(array_shift($params));
+                            $x = intval(array_shift($data[1]));
+                            $y = intval(array_shift($data[2]));
+                            $z = intval(array_shift($data[3]));
 
                             if($x  > 0 && $y > 0 && $z > 0)
                             {
@@ -150,18 +168,17 @@ class iZone implements Plugin{
                             }
                             else
                             {
-                                console("[iZone] Usage: /{$cmd} create [x] [y] [z]");
+                                $issuer->sendChat("[iZone] Usage: /{$cmd} create [x] [y] [z]");
                             }
-
                         }
-                        elseif($ps == 4)
+                        elseif($data[0] == 4)
                         {
-                            $t = $this->api->player->get(array_shift($params));
+                            $t = $this->api->player->get(array_shift($data[1]));
                             if($t instanceof Player)
                             {
-                                $x = intval(array_shift($params));
-                                $y = intval(array_shift($params));
-                                $z = intval(array_shift($params));
+                                $x = intval(array_shift($data[2]));
+                                $y = intval(array_shift($data[3]));
+                                $z = intval(array_shift($data[4]));
 
                                 if($x  > 0 && $y > 0 && $z > 0)
                                 {
@@ -173,24 +190,23 @@ class iZone implements Plugin{
                                 }
                                 else
                                 {
-                                    console("[iZone] Usage: /{$cmd} create [player] [x] [y] [z]");
+                                    $issuer->sendChat("[iZone] Usage: /{$cmd} create [player] [x] [y] [z]");
                                 }
                             }
                             else
                             {
-                                console("[iZone] Usage: /{$cmd} create [player] [x] [y] [z]");
+                                $issuer->sendChat("[iZone] Usage: /{$cmd} create [player] [x] [y] [z]");
                             }
-
                         }
-                        elseif($ps == 6)
+                        elseif($data[0] == 6)
                         {
-                            $x1 = intval(array_shift($params));
-                            $y1 = intval(array_shift($params));
-                            $z1 = intval(array_shift($params));
+                            $x1 = intval(array_shift($data[1]));
+                            $y1 = intval(array_shift($data[2]));
+                            $z1 = intval(array_shift($data[3]));
 
-                            $x2 = intval(array_shift($params));
-                            $y2 = intval(array_shift($params));
-                            $z2 = intval(array_shift($params));
+                            $x2 = intval(array_shift($data[4]));
+                            $y2 = intval(array_shift($data[5]));
+                            $z2 = intval(array_shift($data[6]));
 
                             if($x1  > 0 && $y1 > 0 && $z1 > 0 && $x2  > 0 && $y2 > 0 && $z2 > 0)
                             {
@@ -202,21 +218,21 @@ class iZone implements Plugin{
                             }
                             else
                             {
-                                console("[iZone] Usage: /{$cmd} create [x1] [y1] [z1] [x2] [y2] [z2]");
+                                $issuer->sendChat("[iZone] Usage: /{$cmd} create [x1] [y1] [z1] [x2] [y2] [z2]");
                             }
                         }
-                        elseif($ps == 7)
+                        elseif($data[0] == 7)
                         {
-                            $owner = array_shift($params);
+                            $owner = array_shift($data[1]);
                             if($owner instanceof Player)
                             {
-                                $x1 = intval(array_shift($params));
-                                $y1 = intval(array_shift($params));
-                                $z1 = intval(array_shift($params));
+                                $x1 = intval(array_shift($data[2]));
+                                $y1 = intval(array_shift($data[3]));
+                                $z1 = intval(array_shift($data[4]));
 
-                                $x2 = intval(array_shift($params));
-                                $y2 = intval(array_shift($params));
-                                $z2 = intval(array_shift($params));
+                                $x2 = intval(array_shift($data[5]));
+                                $y2 = intval(array_shift($data[6]));
+                                $z2 = intval(array_shift($data[7]));
 
                                 if($x1  > 0 && $y1 > 0 && $z1 > 0 && $x2  > 0 && $y2 > 0 && $z2 > 0)
                                 {
@@ -228,22 +244,13 @@ class iZone implements Plugin{
                                 }
                                 else
                                 {
-                                    console("[iZone] Usage: /{$cmd} create [owner] [x1] [y1] [z1] [x2] [y2] [z2]");
+                                    $issuer->sendChat("[iZone] Usage: /{$cmd} create [owner] [x1] [y1] [z1] [x2] [y2] [z2]");
                                 }
                             }
                             else
                             {
-                                console("[iZone] Usage: /{$cmd} create [owner] [x1] [y1] [z1] [x2] [y2] [z2]");
+                                $issuer->sendChat("[iZone] Usage: /{$cmd} create [owner] [x1] [y1] [z1] [x2] [y2] [z2]");
                             }
-                        }
-                        else
-                        {
-                            $i = intval($this->config->get('default-area-size'));
-                            $pos1 =  array($issuer->entity->x - $i, $issuer->entity->y - $i, $issuer->entity->z - $i);
-                            $pos2 =  array($issuer->entity->x + $i, $issuer->entity->y + $i, $issuer->entity->z + $i);
-
-                            $this->areas[$issuer->username] = new PArea($this->api, $issuer->level, $pos1, $pos2, $issuer->username);
-                            $issuer->sendChat($this->config->get('private-area-creation-msg'));
                         }
                     }
                     else
@@ -409,7 +416,7 @@ class iZone implements Plugin{
                             }
                             else
                             {
-                                console("[iZone] Usage: /{$cmd} delete [x1] [y1] [z1] [x2] [y2] [z2]");
+                                $issuer->sendChat("[iZone] Usage: /{$cmd} delete [x1] [y1] [z1] [x2] [y2] [z2]");
                             }
                         }
                     }
@@ -538,6 +545,16 @@ class iZone implements Plugin{
                     }
                     break;
 
+                case 'coord':
+                    if($issuer instanceof Player)
+                    {
+                        $issuer->sendChat("iZone Coord: X: {$issuer->entity->x} Y: {$issuer->entity->y} Z: {$issuer->entity->z}");
+                    }
+                    else
+                    {
+                        console("[iZone] Use this command in-game.");
+                    }
+
                 case 'help':
                     console("Usage: /{$cmd} <command> [parameters...]");
                     console("Usage: /izone create [int] or /izc [int]");
@@ -555,6 +572,7 @@ class iZone implements Plugin{
                     console("Usage: /izone deleteg [player] or /izdg [player]");
                     console("Usage: /izone permg [player] [rank] or /izpg [player] [rank]");
                     console("Usage: /izone permg [player] [rank] [time] or /izpg [player] [rank] [time]");
+                    console("Usage: /izone coord or /izco ");
                     break;
 
             }
@@ -598,7 +616,7 @@ class iZone implements Plugin{
                 }
                 break;
 
-            case 'player.block.activate':
+            case 'player.block.touch':
                 if(!$this->api->ban->isOp($data['player']->username))
                 {
                     foreach($this->areas as $k => $area)
