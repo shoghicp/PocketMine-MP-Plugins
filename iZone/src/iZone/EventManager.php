@@ -2,7 +2,7 @@
 
 namespace iZone;
 
-use pocketMine\event\Listener;
+use pocketmine\event\Listener;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\entity\EntityExplodeEvent;
