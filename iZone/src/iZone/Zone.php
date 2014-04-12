@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: InusualZ
- * Date: 4/1/14
- * Time: 5:47 AM
- */
-
 namespace iZone;
 
 use iZone\Task\DeleteMember;
@@ -22,11 +15,20 @@ define("WORK_PERM", 2.0); // With this permission you can place and destroy
 define("SEE_PERM", 1.0); // With this permission you only can see the area
 define("SERV_PLAYER_PERM", 0.0); // A Server User
 
+/**
+ * Class Zone
+ * @package iZone
+ */
 class Zone
 {
-
     public $plugin, $pos1, $pos2, $owner, $users,$setup = false;
 
+    /**
+     * @param MainClass $plugin
+     * @param Player $owner
+     * @param Position $pos1
+     * @param Position $pos2
+     */
     function __construct(MainClass $plugin, Player $owner, Position $pos1, Position $pos2)
     {
         $this->plugin = $plugin;
@@ -43,6 +45,11 @@ class Zone
         $this->setup = true;
     }
 
+    /**
+     * @param Position $position
+     *
+     * @return bool
+     */
     public function isIn(Position $position)
     {
         if($this->setup == false)
@@ -73,6 +80,12 @@ class Zone
         return false;
     }
 
+    /**
+     * @param Position $position
+     * @param $radius
+     *
+     * @return bool
+     */
     public function isOnRadius(Position $position, $radius)
     {
         if($this->setup == false)
@@ -104,38 +117,55 @@ class Zone
     }
 
 
+    /**
+     * @param Player $user
+     * @param $perm
+     * @param int $time
+     * @param bool $reset
+     */
     public function setPermission(Player $user, $perm, $time = 0, $reset = false)
     {
+
         $perm = $this->getPermCode($perm);
-        if(array_key_exists($user->getDisplayName(), $this->users))
+        if(array_key_exists($user->getName(), $this->users))
         {
             if($reset === true && $time > 0)
             {
-                $lperm = $this->users[$user->getDisplayName()];
-                $this->users[$user->getDisplayName()] = $perm;
+                $lperm = $this->users[$user->getName()];
+                $this->users[$user->getName()] = $perm;
                 $this->plugin->getServer()->getScheduler()->scheduleDelayedTask(new PermissionMember($this, $user, $lperm), 20 * $time);
                 //$this->api->schedule(20 * $time, array($this, "setPermission"), array($user, $lperm, 0, false), false);
             }
             elseif($time > 0 && $reset === false)
             {
-                $this->users[$user->getDisplayName()] = $perm;
+                $this->users[$user->getName()] = $perm;
                 $this->plugin->getServer()->getScheduler()->scheduleDelayedTask(new DeleteMember($this, $user), 20 * $time);
                 //$this->api->schedule(20 * $time, array($this, "deleteGuest"), array($user), false);
             }
             else
-                $this->users[$user->getDisplayName()] = $perm;
+                $this->users[$user->getName()] = $perm;
         }
-        //$user->sendMessage("[iZone] You have been ranked: " . $perm . ". In the private area of: ". $this->owner->getDisplayName());
+        //$user->sendMessage("[iZone] You have been ranked: " . $perm . ". In the private area of: ". $this->owner->getName());
     }
 
-    public function getPerm(Player $user)
+    /**
+     * @param Player $user
+     *
+     * @return float
+     */
+    public function getPermission(Player $user)
     {
-        if(array_key_exists($user->getDisplayName(), $this->users))
-            return $this->users[$user->getDisplayName()];
+        if(array_key_exists($user->getName(), $this->users))
+            return $this->users[$user->getName()];
         else
             return SERV_PLAYER_PERM;
     }
 
+    /**
+     * @param $perm
+     *
+     * @return float
+     */
     public function getPermCode($perm)
     {
         switch(strtolower($perm))
@@ -177,22 +207,30 @@ class Zone
         }
     }
 
+    /**
+     * @param Player $user
+     * @param $perm
+     * @param int $time
+     */
     public function addGuest(Player $user, $perm, $time = 0)
     {
         $perm = $this->getPermCode($perm);
-        $this->users[$user->getDisplayName()] = $perm;
-        $user->sendMessage("[iZone] You have been added to the private area of: " . $this->owner->getDisplayName());
+        $this->users[$user->getName()] = $perm;
+        $user->sendMessage("[iZone] You have been added to the private area of: " . $this->owner->getName());
 
         if($time > 0)
             $this->plugin->getServer()->getScheduler()->scheduleDelayedTask(new DeleteMember($this, $user), 20 * $time);
     }
 
+    /**
+     * @param Player $user
+     */
     public function deleteGuest(Player $user)
     {
-        if(array_key_exists($user->getDisplayName(), $this->users))
+        if(array_key_exists($user->getName(), $this->users))
         {
-            unset($this->users[$user->getDisplayName()]);
-            $user->sendMessage("[iZone] You have been removed from the private area of: " . $this->owner->getDisplayName());
+            unset($this->users[$user->getName()]);
+            $user->sendMessage("[iZone] You have been removed from the private area of: " . $this->owner->getName());
         }
     }
 

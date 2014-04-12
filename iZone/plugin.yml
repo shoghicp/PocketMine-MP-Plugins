@@ -1,7 +1,7 @@
 #name, main, version and api are required
 name: iZone
 main: iZone\MainClass
-version: 1.0.0
+version: 1.9.0
 api: [1.0.0]
 
 load: POSTWORLD

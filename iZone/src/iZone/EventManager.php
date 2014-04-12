@@ -27,12 +27,12 @@ class EventManager implements Listener
      */
     public function OnBlockPlace(BlockPlaceEvent $event)
     {
-        $list = $this->plugin->getAllZones();
+        $list = &$this->plugin->getAllZones();
         $player = $event->getPlayer();
 
         foreach($list as $user => $zone)
         {
-            if($user == $player->getDisplayName() || $zone->getPerm($player) > SEE_PERM)
+            if($user == $player->getName() || $zone->getPerm($player) > SEE_PERM)
                 return;
 
             if($zone->isIn($event->getBlock()))
@@ -52,12 +52,12 @@ class EventManager implements Listener
      */
     public function OnBlockBreak(BlockBreakEvent $event)
     {
-        $list = $this->plugin->getAllZones();
+        $list = &$this->plugin->getAllZones();
         $player = $event->getPlayer();
 
         foreach($list as $user => $zone)
         {
-            if($user == $player->getDisplayName() || $zone->getPerm($player) > SEE_PERM)
+            if($user == $player->getName() || $zone->getPerm($player) > SEE_PERM)
                 return;
 
             if($zone->isIn($event->getBlock()))
@@ -87,7 +87,7 @@ class EventManager implements Listener
         {
             if($v->isOnRadius($event->getPosition(), $radius))
             {
-                $k = Player::get($k);
+                $k = $this->plugin->getServer()->getPlayer($k);
                 if($k instanceof Player)
                     $k->sendChat($this->plugin->getConfig()->get('explosion-protection-msg'));
 
@@ -111,7 +111,7 @@ class EventManager implements Listener
 
         foreach($list as $user => $zone)
         {
-            if($user == $player->getDisplayName() || $zone->getPerm($player) > SEE_PERM)
+            if($user == $player->getName() || $zone->getPerm($player) > SEE_PERM)
                 return;
 
             if($zone->isIn($event->getBlock()))
