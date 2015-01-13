@@ -27,7 +27,6 @@ class MainClass extends PluginBase implements CommandExecutor
     public function onLoad()
     {
         $this->saveDefaultConfig();
-        $this->getResource("config.yml");
     }
 
     /**
